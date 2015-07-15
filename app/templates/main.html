@@ -1,15 +1,19 @@
 {% extends "bootstrap/base.html" %}
 {% import "bootstrap/wtf.html" as wtf %}
 
+{% block content %}
 <html>
 <head>
 	<title>Dropbox-Xerocon</title>
+	<link href='http://fonts.googleapis.com/css?family=Special+Elite|Inconsolata|PT+Sans+Narrow' rel='stylesheet' type='text/css'>
+    <link href="../static/css/main.css" rel="stylesheet" />
 </head>
 <body>
-	{% block content %}
-		<p><strong>Go here and get a token:</strong> 
-			<a href="{{ authorization_url }}" target="_blank">{{ authorization_url }}</a></p>
-		<p>{{ wtf.quick_form(form) }}</p>
-	{% endblock %}
+
+		<div class="col-md-4">
+			<p><strong>1. Go <a href="{{ authorization_url }}" target="_blank">here</a> to authorize Dropbox-Xero to sync your Xero data:</strong></p> 
+			{{ wtf.quick_form(form) }}
+		</div>
 </body>
 </html>
+{% endblock %}
