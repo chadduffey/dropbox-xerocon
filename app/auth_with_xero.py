@@ -1,57 +1,73 @@
 from requests_oauthlib import OAuth1Session
 from requests_oauthlib import OAuth1
+from urlparse import parse_qs
 import requests
 
-#<Really slack> 
-#(Getting rid of insecure warning for this hack up)
+#this is very slack
 import warnings
 warnings.filterwarnings("ignore")
-#</Really slack>
 
+
+#Move this to env variables on heroku later.
 client_key = 'ADATDGXMOMVM1ASRTQTXDOHRUQNNO7'
 client_secret = 'F4EEJL5ZLPHAC5JJJ5IVI1IHXJHADO'
 
-request_token_url = 'https://api.xero.com/oauth/RequestToken'
-oauth = OAuth1(client_key, client_secret=client_secret)
-r = requests.post(url=request_token_url, auth=oauth)
+def obtain_authorization_url():
 
-from urlparse import parse_qs
-credentials = parse_qs(r.content)
-resource_owner_key = credentials.get('oauth_token')[0]
-resource_owner_secret = credentials.get('oauth_token_secret')[0]
+	request_token_url = 'https://api.xero.com/oauth/RequestToken'
+	oauth = OAuth1(client_key, client_secret=client_secret)
+	r = requests.post(url=request_token_url, auth=oauth)
 
-base_authorization_url = 'https://api.xero.com/oauth/Authorize'
-authorize_url = base_authorization_url + '?oauth_token='
-authorize_url = authorize_url + resource_owner_key
+	credentials = parse_qs(r.content)
+	resource_owner_key = credentials.get('oauth_token')[0]
+	resource_owner_secret = credentials.get('oauth_token_secret')[0]
 
-print 'Please go here to authorize: ' 
-print authorize_url
-verifier = raw_input('Please input the verifier: ')
+	base_authorization_url = 'https://api.xero.com/oauth/Authorize'
+	authorize_url = base_authorization_url + '?oauth_token='
+	authorize_url = authorize_url + resource_owner_key
 
-#3
-access_token_url = 'https://api.xero.com/oauth/AccessToken'
+	return authorize_url, resource_owner_key, resource_owner_secret
 
-oauth = OAuth1(client_key,
-                   client_secret=client_secret,
-                   resource_owner_key=resource_owner_key,
-                   resource_owner_secret=resource_owner_secret,
-                   verifier=verifier)
+def authorize(verifier, resource_owner_key, resource_owner_secret):
+	access_token_url = 'https://api.xero.com/oauth/AccessToken'
 
-r = requests.post(url=access_token_url, auth=oauth)
+	oauth = OAuth1(client_key,
+	                   client_secret=client_secret,
+	                   resource_owner_key=resource_owner_key,
+	                   resource_owner_secret=resource_owner_secret,
+	                   verifier=verifier)
 
-credentials = parse_qs(r.content)
-resource_owner_key = credentials.get('oauth_token')[0]
-resource_owner_secret = credentials.get('oauth_token_secret')[0]
+	r = requests.post(url=access_token_url, auth=oauth)
 
-#url = 'https://api.xero.com/api.xro/2.0/Contacts'
-url = raw_input('Please enter the Xero API endpoint you want (or "quit"): ')
+	credentials = parse_qs(r.content)
 
-while url != "quit":
+	try:
+		resource_owner_key = credentials.get('oauth_token')[0]
+		resource_owner_secret = credentials.get('oauth_token_secret')[0]
+	except:
+		resource_owner_key = credentials.get('oauth_problem')[0]
+		resource_owner_secret = credentials.get('oauth_problem_advice')[0]
+	
+	return resource_owner_key, resource_owner_secret
+
+def api_query(resource_owner_key, resource_owner_secret):
+	url = 'https://api.xero.com/api.xro/2.0/Contacts'
+
 	auth = OAuth1(client_key, 
 					client_secret=client_secret, 
 					resource_owner_key=resource_owner_key, 
 					resource_owner_secret=resource_owner_secret)
 	result = requests.get(url, auth=auth)
 
-	print result.content
-	url = raw_input('Please enter the Xero API endpoint you want (or "quit"): ')
+	return result.content
+
+
+
+
+
+
+
+
+
+
+	
