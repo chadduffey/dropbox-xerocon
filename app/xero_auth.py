@@ -42,16 +42,6 @@ def authorize(verifier, resource_owner_key, resource_owner_secret):
 
 	return resource_owner_key, resource_owner_secret
 
-def api_query(resource_owner_key, resource_owner_secret):
-	url = 'https://api.xero.com/api.xro/2.0/Contacts'
-	auth = OAuth1(client_key, 
-					client_secret=client_secret, 
-					resource_owner_key=resource_owner_key, 
-					resource_owner_secret=resource_owner_secret)
-	result = requests.get(url, auth=auth)
-
-	return result.content
-
 
 
 

@@ -2,8 +2,8 @@ from app import app
 from flask import url_for, render_template, request, redirect, abort, session
 from flask_bootstrap import Bootstrap
 
-from auth_with_xero import obtain_authorization_url, authorize, api_query
-
+from xero_auth import obtain_authorization_url, authorize 
+from xero_api import xero_file_listing, xero_folder_listing
 from forms import TokenForm
 
 app.secret_key = 'fix_this'
@@ -18,7 +18,7 @@ def index():
         rok = session['rok']
         ros = session['ros']
         resource_owner_key, resource_owner_secret = authorize(token, rok, ros)
-        data = api_query(resource_owner_key, resource_owner_secret)
+        data = xero_folder_listing(resource_owner_key, resource_owner_secret)
         return render_template("temp_data.html", data=data)
     else:
         authorization_url, rok, ros = obtain_authorization_url()
