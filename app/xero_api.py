@@ -7,13 +7,13 @@ import warnings
 warnings.filterwarnings("ignore")
 
 #Move this to env variables on heroku later.
-client_key = 'ADATDGXMOMVM1ASRTQTXDOHRUQNNO7'
-client_secret = 'F4EEJL5ZLPHAC5JJJ5IVI1IHXJHADO'
+XERO_CLIENT_KEY = 'ADATDGXMOMVM1ASRTQTXDOHRUQNNO7'
+XERO_CLIENT_SECRET = 'F4EEJL5ZLPHAC5JJJ5IVI1IHXJHADO'
 
 def xero_file_listing(resource_owner_key, resource_owner_secret):
 	url = 'https://api.xero.com/files.xro/1.0/Files'
-	auth = OAuth1(client_key, 
-					client_secret=client_secret, 
+	auth = OAuth1(XERO_CLIENT_KEY, 
+					client_secret=XERO_CLIENT_SECRET, 
 					resource_owner_key=resource_owner_key, 
 					resource_owner_secret=resource_owner_secret)
 	result = requests.get(url, auth=auth)
@@ -22,8 +22,8 @@ def xero_file_listing(resource_owner_key, resource_owner_secret):
 
 def xero_folder_listing(resource_owner_key, resource_owner_secret):
 	url = 'https://api.xero.com/files.xro/1.0/Folders'
-	auth = OAuth1(client_key, 
-					client_secret=client_secret, 
+	auth = OAuth1(XERO_CLIENT_KEY, 
+					client_secret=XERO_CLIENT_SECRET, 
 					resource_owner_key=resource_owner_key, 
 					resource_owner_secret=resource_owner_secret)
 	result = requests.get(url, auth=auth)
