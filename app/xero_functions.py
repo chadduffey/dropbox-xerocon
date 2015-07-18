@@ -3,17 +3,17 @@ from requests_oauthlib import OAuth1
 from urlparse import parse_qs
 import requests
 
-#this is very slack
+#TODO: this is very slack
 import warnings
 warnings.filterwarnings("ignore")
 
-#Move this to env variables on heroku later.
-client_key = 'ADATDGXMOMVM1ASRTQTXDOHRUQNNO7'
-client_secret = 'F4EEJL5ZLPHAC5JJJ5IVI1IHXJHADO'
+#TODO: Move this to env variables on heroku later.
+XERO_CLIENT_KEY = 'ADATDGXMOMVM1ASRTQTXDOHRUQNNO7'
+XERO_CLIENT_SECRET = 'F4EEJL5ZLPHAC5JJJ5IVI1IHXJHADO'
 
 def obtain_authorization_url():
 	request_token_url = 'https://api.xero.com/oauth/RequestToken'
-	oauth = OAuth1(client_key, client_secret=client_secret)
+	oauth = OAuth1(XERO_CLIENT_KEY, client_secret=XERO_CLIENT_SECRET)
 	r = requests.post(url=request_token_url, auth=oauth)
 	credentials = parse_qs(r.content)
 	resource_owner_key = credentials.get('oauth_token')[0]
@@ -26,8 +26,8 @@ def obtain_authorization_url():
 
 def authorize(verifier, resource_owner_key, resource_owner_secret):
 	access_token_url = 'https://api.xero.com/oauth/AccessToken'
-	oauth = OAuth1(client_key,
-	                   client_secret=client_secret,
+	oauth = OAuth1(XERO_CLIENT_KEY,
+	                   client_secret=XERO_CLIENT_SECRET,
 	                   resource_owner_key=resource_owner_key,
 	                   resource_owner_secret=resource_owner_secret,
 	                   verifier=verifier)
@@ -44,16 +44,13 @@ def authorize(verifier, resource_owner_key, resource_owner_secret):
 
 def api_query(resource_owner_key, resource_owner_secret):
 	url = 'https://api.xero.com/api.xro/2.0/Contacts'
-	auth = OAuth1(client_key, 
-					client_secret=client_secret, 
+	auth = OAuth1(XERO_CLIENT_KEY, 
+					client_secret=XERO_CLIENT_SECRET, 
 					resource_owner_key=resource_owner_key, 
 					resource_owner_secret=resource_owner_secret)
 	result = requests.get(url, auth=auth)
 
 	return result.content
-
-
-
 
 
 

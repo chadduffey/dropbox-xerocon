@@ -1,12 +1,12 @@
 from app import app
 from flask import url_for, render_template, request, redirect, abort, session
 from flask_bootstrap import Bootstrap
-
-from auth_with_xero import obtain_authorization_url, authorize, api_query
-
 from forms import TokenForm
+import dropbox
+from xero_functions import obtain_authorization_url, authorize, api_query
 
-app.secret_key = 'fix_this'
+# Flask secret key, for securing sessions
+app.secret_key = '\x0c\xb5UK\xa8\xc4\xc7\xf1\x03\xe9+\xa3\xac:~Ys\x8aW`+ -\x00'
 
 Bootstrap(app)
 
