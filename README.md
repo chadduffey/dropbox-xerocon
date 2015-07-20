@@ -6,6 +6,7 @@ Machine Setup
 Recommended: brew (http://brew.sh/)
 
 - Install Postgres (database - used for Heroku compatability): `brew install postgres`
+- Create database: `createdb dropbox-xerocon`
 
 Setup
 -----
@@ -17,6 +18,7 @@ Required: python2.7
 - Setup virtual environment `virtualenv venv`
 - Go into virtual environment `source venv/bin/activate` (note: to exit, type deactivate)
 - Install dependencies with `pip install -r requirements.txt`
+- Set up database: `python db_create.py`
 
 Launch (currently always launches in developer mode)
 -----

@@ -1,12 +1,13 @@
 from app import app
 import os, pwd
 
+APP_NAME = 'dropbox-xerocon'
 FLASK_SECRET_KEY = '\x0c\xb5UK\xa8\xc4\xc7\xf1\x03\xe9+\xa3\xac:~Ys\x8aW`+ -\x00'
 
 # Allow Heroku to set database URL via environment variable
 if os.environ.get('DATABASE_URL') is None:
 	current_user = pwd.getpwuid(os.getuid())[0]
-	SQLALCHEMY_DATABASE_URI = 'postgres:///' + current_user
+	SQLALCHEMY_DATABASE_URI = 'postgres:///' + APP_NAME
 else:
 	SQLALCHEMY_DATABASE_URI = os.environ['DATABASE_URL']
 
@@ -24,4 +25,4 @@ import logging
 stream_handler = logging.StreamHandler()
 app.logger.addHandler(stream_handler)
 app.logger.setLevel(logging.INFO)
-app.logger.info('dropbox-xerocon')
+app.logger.info(APP_NAME)
