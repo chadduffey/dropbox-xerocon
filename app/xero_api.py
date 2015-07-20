@@ -2,13 +2,9 @@ from requests_oauthlib import OAuth1Session
 from requests_oauthlib import OAuth1
 import requests
 
-#this is very slack
+#TODO: this is very slack
 import warnings
 warnings.filterwarnings("ignore")
-
-#Move this to env variables on heroku later.
-XERO_CLIENT_KEY = 'ADATDGXMOMVM1ASRTQTXDOHRUQNNO7'
-XERO_CLIENT_SECRET = 'F4EEJL5ZLPHAC5JJJ5IVI1IHXJHADO'
 
 def xero_file_listing(resource_owner_key, resource_owner_secret):
 	url = 'https://api.xero.com/files.xro/1.0/Files'

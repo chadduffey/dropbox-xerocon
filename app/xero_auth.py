@@ -3,13 +3,9 @@ from requests_oauthlib import OAuth1
 from urlparse import parse_qs
 import requests
 
-#this is very slack
+#TODO: this is very slack
 import warnings
 warnings.filterwarnings("ignore")
-
-#Move this to env variables on heroku later.
-XERO_CLIENT_KEY = 'ADATDGXMOMVM1ASRTQTXDOHRUQNNO7'
-XERO_CLIENT_SECRET = 'F4EEJL5ZLPHAC5JJJ5IVI1IHXJHADO'
 
 def obtain_authorization_url():
 	request_token_url = 'https://api.xero.com/oauth/RequestToken'

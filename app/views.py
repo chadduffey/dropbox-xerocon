@@ -1,14 +1,14 @@
 from app import app
 from flask import url_for, render_template, request, redirect, abort, session
 from flask_bootstrap import Bootstrap
+
+from forms import TokenForm
+
+import dropbox
+
 from xero_auth import obtain_authorization_url, authorize 
 from xero_api import xero_file_listing, xero_folder_listing
 
-from forms import TokenForm
-import dropbox
-
-# Flask secret key, for securing sessions
-app.secret_key = '\x0c\xb5UK\xa8\xc4\xc7\xf1\x03\xe9+\xa3\xac:~Ys\x8aW`+ -\x00'
 
 Bootstrap(app)
 
