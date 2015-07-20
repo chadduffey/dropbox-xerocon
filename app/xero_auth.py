@@ -9,7 +9,7 @@ warnings.filterwarnings("ignore")
 
 def obtain_authorization_url():
 	request_token_url = 'https://api.xero.com/oauth/RequestToken'
-	oauth = OAuth1(XERO_CLIENT_KEY, client_secret=XERO_CLIENT_SECRET)
+	oauth = OAuth1(config['XERO_CLIENT_KEY'], client_secret=config['XERO_CLIENT_SECRET'])
 	r = requests.post(url=request_token_url, auth=oauth)
 	credentials = parse_qs(r.content)
 	resource_owner_key = credentials.get('oauth_token')[0]
@@ -22,8 +22,8 @@ def obtain_authorization_url():
 
 def authorize(verifier, resource_owner_key, resource_owner_secret):
 	access_token_url = 'https://api.xero.com/oauth/AccessToken'
-	oauth = OAuth1(XERO_CLIENT_KEY,
-	                   client_secret=XERO_CLIENT_SECRET,
+	oauth = OAuth1(config['XERO_CLIENT_KEY'],
+	                   client_secret=config['XERO_CLIENT_SECRET'],
 	                   resource_owner_key=resource_owner_key,
 	                   resource_owner_secret=resource_owner_secret,
 	                   verifier=verifier)
@@ -37,14 +37,3 @@ def authorize(verifier, resource_owner_key, resource_owner_secret):
 		resource_owner_secret = credentials.get('oauth_problem_advice')[0]	
 
 	return resource_owner_key, resource_owner_secret
-
-
-
-
-
-
-
-
-
-
-	
