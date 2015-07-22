@@ -2,15 +2,31 @@
 {% import "bootstrap/wtf.html" as wtf %}
 
 {% block styles %}
-	{{ super() }}
-	<link href='http://fonts.googleapis.com/css?family=Special+Elite|Inconsolata|PT+Sans+Narrow' rel='stylesheet' type='text/css'>
-	<link href="{{ url_for('.static', filename='main.css') }}" rel="stylesheet" />
+{{ super() }}
+<link href='http://fonts.googleapis.com/css?family=Special+Elite|Inconsolata|PT+Sans+Narrow' rel='stylesheet' type='text/css'>
+<link href="{{ url_for('.static', filename='main.css') }}" rel="stylesheet" />
+
+<style>
+	body {
+		padding-left: 25px;
+		padding-top: 25px;
+		padding-right: 25px;
+	}
+</style>
 {% endblock %}
 
 {% block title %}Dropbox-Xerocon{% endblock %}
 
-{% block navbar %}
-	<div style="text-align:right; padding:10px">
-		<b>Logged in to Dropbox account:</b> {{ user.email }} <a href="{{ url_for('logout') }}">(logout)</a>
-	</div>
+{% block content %}
+<div align="center" color="red">
+	{% with messages = get_flashed_messages() %}
+		{% if messages %}
+		<div id="flashes">
+			{% for message in messages %}
+		  		<br>
+		  		{{ message }}
+			{% endfor %}
+		</div>
+		{% endif %}
+	{% endwith %}
 {% endblock %}

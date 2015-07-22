@@ -1,8 +1,75 @@
 {% extends "base.html" %}
 
+{% block styles %}
+	{{ super() }}
+
+	<style>
+		.status-mark {
+			padding-bottom: 20px;
+		}
+	</style>
+{% endblock %}
+
+{% block scripts %}
+	{{ super() }}
+
+	<script type="text/javascript">
+
+		var countdown = $('#xero_counter');
+				 
+		// update the tag with id "countdown" every 1 second
+		setInterval(function () {
+		 	var current_value = parseInt(countdown.text());
+		 	countdown.text(current_value - 1);
+		}, 1000);
+
+	</script>
+{% endblock %}
+
 {% block content %}
-	<div class="col-md-6">
-		<p><strong>1. Go <a href="{{ authorization_url }}" target="_blank">here</a> to authorize Dropbox-Xero to sync your Xero data:</strong></p> 
-		{{ wtf.quick_form(form) }}
+{{ super() }}
+
+<div class="row">
+	<div class="col-md-6" align="center">
+		<div>
+			<img width="250" src="{{ url_for('.static', filename='dropbox-logo.png') }}" />
+		</div>
+		{% if user %}
+			<div class="status-mark"><img src="{{ url_for('.static', filename='mark-check.png') }}" /></div>
+			<div>
+				<b>Logged in to Dropbox account:</b> {{ user.email }} <a href="{{ url_for('logout') }}">(logout)</a>
+			</div>
+		{% else %}
+			<div class="status-mark"><img src="{{ url_for('.static', filename='mark-x.png') }}" /></div>
+			<a href="{{ dropbox_authorization_url }}">Reload page to log in with Dropbox</a>
+		{% endif %}
 	</div>
+
+	<div class="col-md-6" align="center">
+		<div>
+			<img width="100" src="{{ url_for('.static', filename='xero-logo.png') }}" />
+		</div>
+		{% if user.xero_is_logged_in() %}
+			<div class="status-mark"><img src="{{ url_for('.static', filename='mark-check.png') }}" /></div>
+			<div>
+				<b>Logged in to Xero account</b>
+				<br />
+				<i>Time remaining: <span id="xero_counter">{{ user.xero_session_time_remaining() }}</span> seconds</i>
+			</div>
+		{% else %}
+			<div class="status-mark"><img src="{{ url_for('.static', filename='mark-x.png') }}" /></div>
+			<div>
+				<strong>1. Go <a href="{{ xero_authorization_url }}" target="_blank">here</a> to authorize Dropbox-Xero to sync your Xero data:</strong>
+			</div>
+			{{ wtf.quick_form(form) }}
+		{% endif %}
+	</div>
+</div>
+
+<hr />
+
+<div class="row" align="center">
+	<b>Awesome sync options to come here!</b>
+</div>
+
 {% endblock %}

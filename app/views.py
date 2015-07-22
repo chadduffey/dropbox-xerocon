@@ -15,6 +15,7 @@ DROPBOX_UID_KEY = 'dropbox_uid'
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
+    xero_authorization_url = None
     user = None
     if DROPBOX_UID_KEY in session:
         user = DropboxUser.query.get(session[DROPBOX_UID_KEY])
@@ -22,20 +23,27 @@ def index():
     # If the user is an authorized Dropbox user
     if user:
         form = TokenForm()
+
+        # if user is authorizing for Xero
         if form.validate_on_submit():
             token=form.token.data.strip()
             rok = session['rok']
             ros = session['ros']
-            resource_owner_key, resource_owner_secret = authorize(token, rok, ros)
-            data = xero_folder_listing(resource_owner_key, resource_owner_secret)
-            return render_template("temp_data.html", data=data, user=user)
+            (resource_owner_key, resource_owner_secret) = authorize(token, rok, ros)
+            if resource_owner_key == "token_rejected":
+                flash('Error: %s: ' % resource_owner_secret)
+            else:
+                user.xero_login(resource_owner_key, resource_owner_secret)
+
+        # otherwise, show Xero auth steps
         else:
-            authorization_url, rok, ros = obtain_authorization_url()
+            xero_authorization_url, rok, ros = obtain_authorization_url()
             session['rok'] = rok
             session['ros'] = ros
 
-        return render_template("main.html", form=form, authorization_url=authorization_url, user=user)
+        return render_template("main.html", form=form, xero_authorization_url=xero_authorization_url, user=user)
 
+    # if user isn't an authorized Dropbox user, start by authorizing them
     else:
         session['dropbox_csrf'] = binascii.hexlify(os.urandom(40))
         return redirect(dropbox_auth.authorization_url(session['dropbox_csrf']))

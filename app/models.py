@@ -14,6 +14,8 @@ class DropboxUser(db.Model):
 
 	save_invoices = db.Column(db.Boolean)
 	sync_files = db.Column(db.Boolean)
+	base_folder_path = db.Column(db.Text)
+
 	last_sync = db.Column(db.DateTime)
 	dropbox_cursor = db.Column(db.Text)
 
@@ -26,6 +28,28 @@ class DropboxUser(db.Model):
 	    return '<User %r>' % self.email
 
 
+	def xero_is_logged_in(self):
+		if self.xero_auth:
+			if self.xero_auth.expires > datetime.datetime.now():
+				print "Xero login still valid: %s" % self.xero_auth #!#
+				return True
+			else:
+				print "Xero login expired; deleting: %s" % self.xero_auth #!#
+				db.session.delete(self.xero_auth)
+				db.session.commit()
+
+	# return time remaining in Xero session, in seconds
+	def xero_session_time_remaining(self):
+		return (self.xero_auth.expires - datetime.datetime.now()).seconds
+
+	def xero_login(self, resource_owner_key, resource_owner_secret):
+	    auth = XeroAuth(resource_owner_key=resource_owner_key, resource_owner_secret=resource_owner_secret)
+	    db.session.add(auth)
+	    self.xero_auth = auth
+	    db.session.commit()
+
+
+
 class XeroAuth(db.Model):
 	__tablename__ = 'xero_auth'
 
@@ -35,16 +59,13 @@ class XeroAuth(db.Model):
 	created = db.Column(db.DateTime)
 	expires = db.Column(db.DateTime)
 
-	def __init__(self, resource_owner_key, resource_owner_secret, creation_time=None):
-		self.dropboxuser_id = dropboxuser_id
+	def __init__(self, resource_owner_key, resource_owner_secret):
 		self.resource_owner_key = resource_owner_key
 		self.resource_owner_secret = resource_owner_secret
 
-		if not creation_time:
-			creation_time = datetime.datetime.now()
-
+		creation_time = datetime.datetime.now()
 		self.created = creation_time
-		self.expires = creation_time + timedelta(minutes=app.config['XERO_AUTH_DURATION_MIN'])
+		self.expires = creation_time + datetime.timedelta(minutes=app.config['XERO_AUTH_DURATION_MIN'])
 
 	def __repr__(self):
 		return '<XeroAuth %r (created %r)>' % (self.resource_owner_key, self.created)
