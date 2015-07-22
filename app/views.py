@@ -28,19 +28,19 @@ def index():
             ros = session['ros']
             resource_owner_key, resource_owner_secret = authorize(token, rok, ros)
             data = xero_folder_listing(resource_owner_key, resource_owner_secret)
-            return render_template("temp_data.html", data=data)
+            return render_template("temp_data.html", data=data, user=user)
         else:
             authorization_url, rok, ros = obtain_authorization_url()
             session['rok'] = rok
             session['ros'] = ros
 
-        return render_template("main.html", form=form, authorization_url = authorization_url)
+        return render_template("main.html", form=form, authorization_url=authorization_url, user=user)
 
     else:
         session['dropbox_csrf'] = binascii.hexlify(os.urandom(40))
         return redirect(dropbox_auth.authorization_url(session['dropbox_csrf']))
 
-@app.route('/dropbox_auth_redirect', methods=['GET', 'POST'])
+@app.route('/dropbox_auth_redirect')
 def process_dropbox_auth_redirect():
     if request.args['state'] == session['dropbox_csrf'] and request.args['code']:
         (dropbox_uid, access_token) = dropbox_auth.get_access_token(request.args['code'])
@@ -49,7 +49,7 @@ def process_dropbox_auth_redirect():
         dbx = dropbox.Dropbox(access_token)
         dbx_account = dbx.users_get_current_account()
 
-        user = DropboxUser.query.get(session[DROPBOX_UID_KEY])
+        user = DropboxUser.query.get(dropbox_uid)
         # if user already exists, just update the auth token and email
         if user:
             user.email = dbx_account.email
@@ -64,3 +64,11 @@ def process_dropbox_auth_redirect():
         return redirect(url_for('index'))
 
     abort(401)
+
+@app.route('/logout')
+def logout():
+    # remove the username from the session if it's there
+    # ideally should also call /disable_access_token Dropbox endpoint
+    session.pop(DROPBOX_UID_KEY, None)
+    return redirect(url_for('index'))
+

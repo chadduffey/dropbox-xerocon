@@ -1,0 +1,16 @@
+{% extends "bootstrap/base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block styles %}
+	{{ super() }}
+	<link href='http://fonts.googleapis.com/css?family=Special+Elite|Inconsolata|PT+Sans+Narrow' rel='stylesheet' type='text/css'>
+	<link href="{{ url_for('.static', filename='main.css') }}" rel="stylesheet" />
+{% endblock %}
+
+{% block title %}Dropbox-Xerocon{% endblock %}
+
+{% block navbar %}
+	<div style="text-align:right; padding:10px">
+		<b>Logged in to Dropbox account:</b> {{ user.email }} <a href="{{ url_for('logout') }}">(logout)</a>
+	</div>
+{% endblock %}
