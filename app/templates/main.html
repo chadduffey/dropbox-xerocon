@@ -20,8 +20,11 @@
 		// update the tag with id "countdown" every 1 second
 		setInterval(function () {
 		 	var current_value = parseInt(countdown.text());
+		 	if(current_value == 0) {
+		 		location.reload(true);
+		 	}
 		 	countdown.text(current_value - 1);
-		}, 1000);
+		}, 60000);
 
 	</script>
 {% endblock %}
@@ -37,7 +40,9 @@
 		{% if user %}
 			<div class="status-mark"><img src="{{ url_for('.static', filename='mark-check.png') }}" /></div>
 			<div>
-				<b>Logged in to Dropbox account:</b> {{ user.email }} <a href="{{ url_for('logout') }}">(logout)</a>
+				<b>Logged in to Dropbox account</b> <a href="{{ url_for('logout') }}">(logout)</a>
+				<br />
+				<i>{{ user.email }}</i>
 			</div>
 		{% else %}
 			<div class="status-mark"><img src="{{ url_for('.static', filename='mark-x.png') }}" /></div>
@@ -47,14 +52,14 @@
 
 	<div class="col-md-6" align="center">
 		<div>
-			<img width="100" src="{{ url_for('.static', filename='xero-logo.png') }}" />
+			<img width="100" style="margin-top: -5px;" src="{{ url_for('.static', filename='xero-logo.png') }}" />
 		</div>
 		{% if user.xero_is_logged_in() %}
 			<div class="status-mark"><img src="{{ url_for('.static', filename='mark-check.png') }}" /></div>
 			<div>
-				<b>Logged in to Xero account</b>
+				<b>Logged in to Xero account</b> <a href="{{ url_for('logout_xero') }}">(logout)</a>
 				<br />
-				<i>Time remaining: <span id="xero_counter">{{ user.xero_session_time_remaining() }}</span> seconds</i>
+				<i>Time remaining: <span id="xero_counter">{{ (user.xero_session_time_remaining() / 60) | int }}</span> minutes</i>
 			</div>
 		{% else %}
 			<div class="status-mark"><img src="{{ url_for('.static', filename='mark-x.png') }}" /></div>

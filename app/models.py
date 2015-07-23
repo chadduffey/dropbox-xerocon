@@ -48,6 +48,9 @@ class DropboxUser(db.Model):
 	    self.xero_auth = auth
 	    db.session.commit()
 
+	def xero_logout(self):
+		db.session.delete(self.xero_auth)
+		db.session.commit()
 
 
 class XeroAuth(db.Model):

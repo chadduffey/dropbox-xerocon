@@ -76,7 +76,17 @@ def process_dropbox_auth_redirect():
 @app.route('/logout')
 def logout():
     # remove the username from the session if it's there
-    # ideally should also call /disable_access_token Dropbox endpoint
+    #TODO: ideally should also call /disable_access_token Dropbox endpoint
     session.pop(DROPBOX_UID_KEY, None)
+    return redirect(url_for('index'))
+
+@app.route('/logout-xero')
+def logout_xero():
+    # remove the Xero token from the user object
+    if DROPBOX_UID_KEY in session:
+        user = DropboxUser.query.get(session[DROPBOX_UID_KEY])
+        if user:
+            user.xero_logout()
+
     return redirect(url_for('index'))
 
