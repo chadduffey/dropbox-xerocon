@@ -1,52 +1,71 @@
 from app import app, db
-from models import DropboxUser, XeroAuth
+from models import User
 import os
 import binascii # for generating CSRF
-from flask import url_for, render_template, request, redirect, abort, session
-from forms import TokenForm
+from flask import url_for, render_template, request, redirect, abort, session, flash, g
+from forms import XeroAuthForm, SettingsForm
 
 import dropbox
 import dropbox_auth
 
-from xero_auth import obtain_authorization_url, authorize 
-from xero_api import xero_file_listing, xero_folder_listing
+from xero import Xero
+import xero_auth 
 
-DROPBOX_UID_KEY = 'dropbox_uid'
+USER_ID_KEY = 'uid'
+
+# Set up the user object
+@app.before_request
+def before_request():
+    g.user = None
+    if USER_ID_KEY in session:
+        g.user = User.query.get(session[USER_ID_KEY])
+    if not g.user: # if the user hasn't been set up yet, or isn't in the database
+        g.user = User()
+        db.session.add(g.user)
+        db.session.commit()
+        session[USER_ID_KEY] = g.user.id
+        session.permanent = True
+
+# Make the user object available in all templates
+@app.context_processor
+def inject_user():
+    return dict(user=g.user)
+
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    xero_authorization_url = None
-    user = None
-    if DROPBOX_UID_KEY in session:
-        user = DropboxUser.query.get(session[DROPBOX_UID_KEY])
+    dropbox_auth_url = None
+    if not g.user.is_logged_in_to_dropbox():
+        session['dropbox_csrf'] = binascii.hexlify(os.urandom(40))
+        dropbox_auth_url = dropbox_auth.authorization_url(session['dropbox_csrf'])
 
-    # If the user is an authorized Dropbox user
-    if user:
-        form = TokenForm()
-
+    xero_auth_url = None
+    xero_auth_form = XeroAuthForm()
+    if not g.user.is_logged_in_to_xero():
         # if user is authorizing for Xero
-        if form.validate_on_submit():
-            token=form.token.data.strip()
+        if xero_auth_form.validate_on_submit():
+            verification_code=xero_auth_form.verification_code.data.strip()
             rok = session['rok']
             ros = session['ros']
-            (resource_owner_key, resource_owner_secret) = authorize(token, rok, ros)
-            if resource_owner_key == "token_rejected":
-                flash('Error: %s: ' % resource_owner_secret)
+            (org_id, token, secret, seconds_valid, error, error_details) = xero_auth.authorize(verification_code, rok, ros)
+            if error:
+                flash('Error %s: %s' % (error, error_details))
             else:
-                user.xero_login(resource_owner_key, resource_owner_secret)
+                # get org info for the name - also validates that we have access
+                xero = Xero(xero_auth.XeroCredentials(token, secret))
+                org_name = xero.organisations.all()[0]["Name"]
 
-        # otherwise, show Xero auth steps
+                g.user.xero_login(org_id, org_name, token, secret, seconds_valid)
+
+                return redirect(url_for('index')) # redirect in order to clear the POST variables
         else:
-            xero_authorization_url, rok, ros = obtain_authorization_url()
+            xero_auth_url, rok, ros = xero_auth.obtain_authorization_url()
             session['rok'] = rok
             session['ros'] = ros
 
-        return render_template("main.html", form=form, xero_authorization_url=xero_authorization_url, user=user)
+    return render_template("main.html", dropbox_auth_url=dropbox_auth_url, 
+        xero_auth_url=xero_auth_url, xero_auth_form=xero_auth_form)
 
-    # if user isn't an authorized Dropbox user, start by authorizing them
-    else:
-        session['dropbox_csrf'] = binascii.hexlify(os.urandom(40))
-        return redirect(dropbox_auth.authorization_url(session['dropbox_csrf']))
 
 @app.route('/dropbox_auth_redirect')
 def process_dropbox_auth_redirect():
@@ -57,36 +76,19 @@ def process_dropbox_auth_redirect():
         dbx = dropbox.Dropbox(access_token)
         dbx_account = dbx.users_get_current_account()
 
-        user = DropboxUser.query.get(dropbox_uid)
-        # if user already exists, just update the auth token and email
-        if user:
-            user.email = dbx_account.email
-            user.access_token = access_token
-        else:
-            user = DropboxUser(id=dropbox_uid, email=dbx_account.email, auth_token=access_token)
-            db.session.add(user)
-        
-        db.session.commit()
-        session[DROPBOX_UID_KEY] = dropbox_uid
-
+        g.user.dropbox_login(dropbox_uid, dbx_account.email, access_token)
         return redirect(url_for('index'))
 
     abort(401)
 
-@app.route('/logout')
-def logout():
-    # remove the username from the session if it's there
-    #TODO: ideally should also call /disable_access_token Dropbox endpoint
-    session.pop(DROPBOX_UID_KEY, None)
+
+@app.route('/dropbox-logout')
+def dropbox_logout():
+    g.user.dropbox_logout()
     return redirect(url_for('index'))
 
-@app.route('/logout-xero')
-def logout_xero():
-    # remove the Xero token from the user object
-    if DROPBOX_UID_KEY in session:
-        user = DropboxUser.query.get(session[DROPBOX_UID_KEY])
-        if user:
-            user.xero_logout()
-
+@app.route('/xero-logout')
+def xero_logout():
+    g.user.xero_logout()
     return redirect(url_for('index'))
 

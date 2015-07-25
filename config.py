@@ -18,7 +18,7 @@ DROPBOX_APP_SECRET = 'u2i1rvdkmztmv7g'
 # Xero API variables
 XERO_CLIENT_KEY = 'ADATDGXMOMVM1ASRTQTXDOHRUQNNO7'
 XERO_CLIENT_SECRET = 'F4EEJL5ZLPHAC5JJJ5IVI1IHXJHADO'
-XERO_AUTH_DURATION_MIN = 30
+XERO_BASE_URL = "https://api.xero.com"
 
 # Set up log to write to stdout
 import logging

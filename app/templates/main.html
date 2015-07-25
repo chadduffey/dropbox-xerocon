@@ -37,16 +37,18 @@
 		<div>
 			<img width="250" src="{{ url_for('.static', filename='dropbox-logo.png') }}" />
 		</div>
-		{% if user %}
+		{% if user.is_logged_in_to_dropbox() %}
 			<div class="status-mark"><img src="{{ url_for('.static', filename='mark-check.png') }}" /></div>
 			<div>
-				<b>Logged in to Dropbox account</b> <a href="{{ url_for('logout') }}">(logout)</a>
+				<b>Logged in to Dropbox account:</b>
 				<br />
-				<i>{{ user.email }}</i>
+				<i>{{ user.dropbox_account.email }}</i> <a href="{{ url_for('dropbox_logout') }}">(logout)</a>
 			</div>
 		{% else %}
 			<div class="status-mark"><img src="{{ url_for('.static', filename='mark-x.png') }}" /></div>
-			<a href="{{ dropbox_authorization_url }}">Reload page to log in with Dropbox</a>
+			<div>
+				<b><a href="{{ dropbox_auth_url }}">Click here</a> to authorize with Dropbox</b>
+			</div>
 		{% endif %}
 	</div>
 
@@ -54,27 +56,29 @@
 		<div>
 			<img width="100" style="margin-top: -5px;" src="{{ url_for('.static', filename='xero-logo.png') }}" />
 		</div>
-		{% if user.xero_is_logged_in() %}
+		{% if user.is_logged_in_to_xero() %}
 			<div class="status-mark"><img src="{{ url_for('.static', filename='mark-check.png') }}" /></div>
 			<div>
-				<b>Logged in to Xero account</b> <a href="{{ url_for('logout_xero') }}">(logout)</a>
+				<b>Logged in to Xero organization:</b> <i>{{ user.xero_org.name }}</i> <a href="{{ url_for('xero_logout') }}">(logout)</a>
 				<br />
-				<i>Time remaining: <span id="xero_counter">{{ (user.xero_session_time_remaining() / 60) | int }}</span> minutes</i>
+				<i>Time remaining: <span id="xero_counter">{{ (user.xero_org.session_time_remaining() / 60) | int }}</span> minutes</i>
 			</div>
 		{% else %}
 			<div class="status-mark"><img src="{{ url_for('.static', filename='mark-x.png') }}" /></div>
 			<div>
-				<strong>1. Go <a href="{{ xero_authorization_url }}" target="_blank">here</a> to authorize Dropbox-Xero to sync your Xero data:</strong>
+				<b>1. <a href="{{ xero_auth_url }}" target="_blank">Click here</a> to authorize with Xero</b>
 			</div>
-			{{ wtf.quick_form(form) }}
+			{{ wtf.quick_form(xero_auth_form) }}
 		{% endif %}
 	</div>
 </div>
 
-<hr />
+{% if user.is_logged_in_to_dropbox() and user.is_logged_in_to_xero() %}
+	<hr />
 
-<div class="row" align="center">
-	<b>Awesome sync options to come here!</b>
-</div>
+	<div class="row" align="center">
+		<b>Awesome sync options to come here!</b>
+	</div>
+{% endif %}
 
 {% endblock %}

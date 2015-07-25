@@ -12,21 +12,27 @@
 		padding-top: 25px;
 		padding-right: 25px;
 	}
+	#flashes {
+		text-align:center;
+		color: red;
+		font-weight:bold;
+	}
 </style>
 {% endblock %}
 
 {% block title %}Dropbox-Xerocon{% endblock %}
 
 {% block content %}
-<div align="center" color="red">
+<div align="center">
 	{% with messages = get_flashed_messages() %}
 		{% if messages %}
 		<div id="flashes">
 			{% for message in messages %}
-		  		<br>
 		  		{{ message }}
+		  		<br />
 			{% endfor %}
 		</div>
 		{% endif %}
 	{% endwith %}
+</div>
 {% endblock %}
