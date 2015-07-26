@@ -25,11 +25,4 @@ def get_access_token(auth_code):
 	r = requests.post(url=url)
 	response = r.json()
 	return response['uid'], response['access_token']
-
-def process_webhook(request):
-	if request.method == 'GET':
-		# Respond to the webhook verification (GET request) by echoing back the challenge parameter
-		return HttpResponse(request.GET["challenge"])
-
-	print "Dropbox webhook received: " + str(datetime.now())
-
+	
