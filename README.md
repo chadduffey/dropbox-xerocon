@@ -18,6 +18,7 @@ Required: python2.7
 - Setup virtual environment `virtualenv venv`
 - Go into virtual environment `source venv/bin/activate` (note: to exit, type deactivate)
 - Install dependencies with `pip install -r requirements.txt`
+- Install Dropbox v2 SDK (required since not currently in pip): `pip install dropbox-sdk-python-master.zip`
 - Set up database: `python db_create.py`
 
 Launch (currently always launches in developer mode)
