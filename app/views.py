@@ -3,12 +3,12 @@ from models import User
 import os
 import binascii # for generating CSRF
 from flask import url_for, render_template, request, redirect, abort, session, flash, g
-from forms import XeroAuthForm, SettingsForm
+import forms
 
 import dropbox
 import dropbox_auth
 
-from xero import Xero
+from xero import Xero # PyXero
 import xero_auth 
 
 USER_ID_KEY = 'uid'
@@ -40,7 +40,7 @@ def index():
         dropbox_auth_url = dropbox_auth.authorization_url(session['dropbox_csrf'])
 
     xero_auth_url = None
-    xero_auth_form = XeroAuthForm()
+    xero_auth_form = forms.XeroAuthForm()
     if not g.user.is_logged_in_to_xero():
         # if user is authorizing for Xero
         if xero_auth_form.validate_on_submit():
@@ -63,11 +63,15 @@ def index():
             session['rok'] = rok
             session['ros'] = ros
 
+    save_invoices_form = forms.SaveInvoicesForm()
+    sync_files_form = forms.SyncFilesForm()
+
     return render_template("main.html", dropbox_auth_url=dropbox_auth_url, 
-        xero_auth_url=xero_auth_url, xero_auth_form=xero_auth_form)
+        xero_auth_url=xero_auth_url, xero_auth_form=xero_auth_form,
+        save_invoices_form=save_invoices_form, sync_files_form=sync_files_form)
 
 
-@app.route('/dropbox_auth_redirect')
+@app.route('/dropbox/auth_redirect')
 def process_dropbox_auth_redirect():
     if request.args['state'] == session['dropbox_csrf'] and request.args['code']:
         (dropbox_uid, access_token) = dropbox_auth.get_access_token(request.args['code'])
@@ -82,12 +86,21 @@ def process_dropbox_auth_redirect():
     abort(401)
 
 
-@app.route('/dropbox-logout')
+@app.route('/dropbox/webhook')
+def process_webhook(request): #!#
+    if request.method == 'GET':
+        # Respond to the webhook verification (GET request) by echoing back the challenge parameter
+        return HttpResponse(request.GET["challenge"])
+
+    print "Dropbox webhook received: " + str(datetime.now())
+
+
+@app.route('/dropbox/logout')
 def dropbox_logout():
     g.user.dropbox_logout()
     return redirect(url_for('index'))
 
-@app.route('/xero-logout')
+@app.route('/xero/logout')
 def xero_logout():
     g.user.xero_logout()
     return redirect(url_for('index'))
