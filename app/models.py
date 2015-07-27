@@ -1,5 +1,6 @@
 from app import app, db
 import datetime
+import xero_auth
 
 class DropboxAccount(db.Model):
 	__tablename__ = 'dropbox_account'
@@ -74,22 +75,49 @@ class User(db.Model):
 	xero_org_id = db.Column(db.Text, db.ForeignKey('xero_org.id'))
 	xero_org = db.relationship('XeroOrg', backref=db.backref('user', lazy='dynamic'))
 
+	invoices_folder_path = db.Column(db.Text)
 	last_invoices_sync = db.Column(db.DateTime)
+
+	files_folder_path = db.Column(db.Text)
 	last_files_sync = db.Column(db.DateTime)	
 	dropbox_file_cursor = db.Column(db.Text)
 
+	def __init__(self):
+		self.invoices_folder_path = app.config['DROPBOX_INVOICE_FOLDER_PATH']
+		self.files_folder_path = app.config['DROPBOX_FILES_FOLDER_PATH']
+
 	def __repr__(self):
 		return '<User %r>' % self.id
+
+	def last_synced_invoices_formatted(self):
+		if self.last_invoices_sync:
+			return self.last_invoices_sync.strftime('%-m-%-d-%Y at %-I:%M %p')
+		return "Never"
+
+	def mark_invoices_synced(self, time=datetime.datetime.now()):
+		self.last_invoices_sync = time
+		db.session.commit()
+
+	def last_synced_files_formatted(self):
+		if self.last_files_sync:
+			return self.last_files_sync.strftime('%-m-%-d-%Y at %-I:%M %p')	
+		return "Never"
+
+	def mark_files_synced(self, time=datetime.datetime.now()):
+		self.last_files_sync = time
+		if time == None:
+			self.dropbox_file_cursor = None
+		db.session.commit()
 
 	def is_logged_in_to_dropbox(self):
 		if self.dropbox_account:
 			return self.dropbox_account.is_logged_in()
 		return False
 
-	def is_logged_in_to_xero(self):
-		if self.xero_org:
-			return self.xero_org.is_logged_in()
-		return False
+	def dropbox_credentials(self):
+		if self.is_logged_in_to_dropbox():
+			return self.dropbox_account.access_token
+		return None
 
 	def dropbox_login(self, id, email, access_token):
 		if self.dropbox_account and (self.dropbox_account.id != id or self.dropbox_account.email != email):
@@ -106,6 +134,16 @@ class User(db.Model):
 		if self.dropbox_account:
 			db.session.delete(self.dropbox_account)
 			db.session.commit()
+
+	def is_logged_in_to_xero(self):
+		if self.xero_org:
+			return self.xero_org.is_logged_in()
+		return False
+
+	def xero_credentials(self):
+		if self.is_logged_in_to_xero():
+			return xero_auth.XeroCredentials(self.xero_org.token, self.xero_org.secret)
+		return None
 
 	def xero_login(self, id, name, token, secret, seconds_valid):
 		if self.xero_org and (self.xero_org.id != id or self.xero_org.name != name):
