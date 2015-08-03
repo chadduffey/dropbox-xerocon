@@ -55,7 +55,8 @@ def index():
     return render_template("main.html", dropbox_auth_url=dropbox_auth_url, 
         xero_auth_url=xero_auth_url, xero_auth_form=xero_auth_form,
         save_invoices_form=forms.SaveInvoicesForm(), reset_invoices_form=forms.ResetInvoicesForm(),
-         sync_files_form=forms.SyncFilesForm(), reset_files_form=forms.ResetFilesForm())
+        upload_files_form=forms.UploadFilesForm(), reset_upload_files_form=forms.ResetUploadFilesForm(),
+        save_files_form=forms.SaveFilesForm(), reset_save_files_form=forms.ResetSaveFilesForm())
 
 
 @app.route('/dropbox/auth_redirect')
@@ -124,20 +125,13 @@ def save_invoices():
     return redirect(url_for('index'))
 
 
-@app.route('/reset_invoices', methods=['POST'])
-def reset_invoices():
-    g.user.mark_invoices_synced(time=None)
-    return redirect(url_for('index'))
-
-
-@app.route('/sync_files', methods=['POST'])
-def sync_files():
+@app.route('/upload_files', methods=['POST'])
+def upload_files():
     xero = Xero(g.user.xero_credentials())
     dbx = dropbox.Dropbox(g.user.dropbox_credentials())
     base_path = g.user.files_folder_path
     ensure_dbx_folder_exists(dbx=dbx, path=base_path)
 
-    folders = {}
     xero_inbox_folder_id = None
     xero_folders = xero.filesAPI.folders.all()
     for folder in xero_folders:
@@ -166,9 +160,9 @@ def sync_files():
     for entry in dbx_entries:
         # add any folders that don't exist on Xero
         if isinstance(entry, dropbox.files.FolderMetadata):
-            if not get_xero_obj_by_name(xero_folders, entry.name):
-                xero.filesAPI.folders.create({"name": entry.name})
-                print "Created folder on Xero: %s" % entry.name #!#
+#            if not get_xero_obj_by_name(xero_folders, entry.name):
+#                xero.filesAPI.folders.create({"name": entry.name})
+#                print "Created folder on Xero: %s" % entry.name #!#
             # get subfolder entries (since apparently recursive isn't working)
             subfolder_result = dbx.files_list_folder(path=entry.path_lower)
             subfolder_entries.append(subfolder_result.entries)
@@ -176,14 +170,12 @@ def sync_files():
                 subfolder_result = dbx.files_list_folder_continue(cursor=subfolder_result.cursor)
                 subfolder_entries.append(subfolder_result.entries)
 
-        # ignore deleted files / folders for now
-        if isinstance(entry, dropbox.files.DeletedMetadata):
-            xero_file = get_xero_obj_by_name(xero_files, entry.name)
-
     # filter to just files
     dbx_files = [entry for entry in dbx_entries if isinstance(entry, dropbox.files.FileMetadata)]
     subfolder_files = [entry for entry in subfolder_entries if isinstance(entry, dropbox.files.FileMetadata)]
     dbx_files.append(subfolder_files)
+
+    print "Dropbox entries v2: %s" % dbx_files #!#
 
     # write Xero files to Dropbox
     for xero_file in xero_files:
@@ -227,8 +219,13 @@ def sync_files():
     return redirect(url_for('index'))
 
 
-@app.route('/reset_files', methods=['POST'])
-def reset_files():
+@app.route('/save_files', methods=['POST'])
+def save_files():
+    print "saving files" #!#
+    
+
+@app.route('/create_folders_in_dbx', methods=['POST'])
+def create_folders_in_dbx():
     g.user.mark_files_synced(time=None)
     return redirect(url_for('index'))
 
@@ -270,6 +267,22 @@ def get_xero_obj_by_name(objects, name):
 
 def datetime_from_utc(utc_time):
     return datetime.strptime(utc_time, "%Y-%m-%dT%H:%M:%S.%f0")
+
+
+@app.route('/reset/invoices', methods=['POST'])
+def reset_invoices():
+    g.user.mark_invoices_synced(time=None)
+    return redirect(url_for('index'))
+
+@app.route('/reset/upload', methods=['POST'])
+def reset_upload():
+    g.user.mark_upload_synced(time=None)
+    return redirect(url_for('index'))
+
+@app.route('/reset/save_files', methods=['POST'])
+def reset_save_files():
+    g.user.mark_save_files_synced(time=None)
+    return redirect(url_for('index'))
 
 
 @app.route('/dropbox/webhook')

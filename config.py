@@ -17,7 +17,8 @@ DROPBOX_APP_SECRET = 'u2i1rvdkmztmv7g'
 
 # Default folder paths in Dropbox
 DROPBOX_INVOICE_FOLDER_PATH = '/Xero Invoices'
-DROPBOX_FILES_FOLDER_PATH = '/Xero Files'
+DROPBOX_SAVE_FILES_FOLDER_PATH = '/Xero Files'
+DROPBOX_FILE_UPLOAD_FOLDER_PATH = '/Xero File Upload (Inbox)'
 
 # Xero API variables
 XERO_CLIENT_KEY = 'ADATDGXMOMVM1ASRTQTXDOHRUQNNO7'

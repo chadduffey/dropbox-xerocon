@@ -7,6 +7,11 @@
 		.status-mark {
 			padding-bottom: 20px;
 		}
+
+		.optionbox {
+			padding-right: 30px;
+			padding-left: 30px;
+		}
 	</style>
 {% endblock %}
 
@@ -40,7 +45,7 @@
 		{% if user.is_logged_in_to_dropbox() %}
 			<div class="status-mark"><img src="{{ url_for('.static', filename='mark-check.png') }}" /></div>
 			<div>
-				<b>Logged in to Dropbox account:</b> <i>{{ user.dropbox_account.email }}</i> <a href="{{ url_for('dropbox_logout') }}">(logout)</a>
+				<b>Authorized for account:</b> <i>{{ user.dropbox_account.email }}</i> <a href="{{ url_for('dropbox_logout') }}">(logout)</a>
 			</div>
 		{% else %}
 			<div class="status-mark"><img src="{{ url_for('.static', filename='mark-x.png') }}" /></div>
@@ -51,22 +56,25 @@
 	</div>
 
 	<div class="col-md-6" align="center">
+		{% if user.is_logged_in_to_dropbox() %}
 		<div>
 			<img width="100" style="margin-top: -5px;" src="{{ url_for('.static', filename='xero-logo.png') }}" />
 		</div>
-		{% if user.is_logged_in_to_xero() %}
-			<div class="status-mark"><img src="{{ url_for('.static', filename='mark-check.png') }}" /></div>
-			<div>
-				<b>Logged in to Xero org:</b> <i>{{ user.xero_org.name }}</i> <a href="{{ url_for('xero_logout') }}">(logout)</a>
-				<br />
-				<i>Time remaining: <span id="xero_counter">{{ (user.xero_org.session_time_remaining() / 60) | int }}</span> minutes</i>
-			</div>
-		{% else %}
-			<div class="status-mark"><img src="{{ url_for('.static', filename='mark-x.png') }}" /></div>
-			<div>
-				<b>1. <a href="{{ xero_auth_url }}" target="_blank">Click here</a> to authorize with Xero</b>
-			</div>
-			{{ wtf.quick_form(xero_auth_form) }}
+			{% if user.is_logged_in_to_xero() %}
+				<div class="status-mark"><img src="{{ url_for('.static', filename='mark-check.png') }}" /></div>
+				<div>
+					<b>Authorized for org:</b> <i>{{ user.xero_org.name }}</i> <a href="{{ url_for('xero_logout') }}">(logout)</a>
+					<br />
+					<i>Time remaining: <span id="xero_counter">{{ (user.xero_org.session_time_remaining() / 60) | int }}</span> minutes</i>
+				</div>
+			{% else %}
+				<div class="status-mark"><img src="{{ url_for('.static', filename='mark-x.png') }}" /></div>
+				<div>
+					<b>1. <a href="{{ xero_auth_url }}" target="_blank">Click here</a> to authorize with Xero</b>
+				</div>
+				{{ wtf.quick_form(xero_auth_form) }}
+			{% endif %}
+		</div>
 		{% endif %}
 	</div>
 </div>
@@ -76,25 +84,44 @@
 <hr />
 
 <div class="row" align="center">
-	<div class="col-md-6">
+	<div class="col-md-4 optionbox">
 		<h4 style="font-weight: bold">Save a PDF copy of every Xero invoice to Dropbox</h4>
 		Saved to the '{{ user.invoices_folder_path }}' folder
 		<br />
 		<br />
-		<b>Last synced:</b> {{ user.last_synced_invoices_formatted() }}
+		<b>Last synced:</b> {{ user.last_invoices_sync_formatted() }}
+		<br />
 		{{ wtf.quick_form(save_invoices_form, action=url_for('save_invoices')) }}
-		<br />
-		{{ wtf.quick_form(reset_invoices_form, action=url_for('reset_invoices')) }}
+		{% if user.last_synced_invoices %}
+			<br />
+			{{ wtf.quick_form(reset_invoices_form, action=url_for('reset_invoices')) }}
+		{% endif %}
 	</div>
-	<div class="col-md-6">
-		<h4 style="font-weight: bold">Sync files between Xero Files and Dropbox</h4>
-		Saved to the '{{ user.files_folder_path }}' folder
+	<div class="col-md-4 optionbox">
+		<h4 style="font-weight: bold">Upload files from Dropbox to Xero</h4>
+		Upload any files in the '{{ user.upload_folder_path }}' folder to Xero
 		<br />
 		<br />
-		<b>Last synced:</b> {{ user.last_synced_files_formatted() }}
-		{{ wtf.quick_form(sync_files_form, action=url_for('sync_files')) }}
+		<b>Last synced:</b> {{ user.last_upload_sync_formatted() }}
 		<br />
-		{{ wtf.quick_form(reset_files_form, action=url_for('reset_files')) }}
+		{{ wtf.quick_form(upload_files_form, action=url_for('upload_files')) }}
+		{% if user.last_upload_sync %}
+			<br />
+			{{ wtf.quick_form(reset_upload_files_form, action=url_for('reset_upload')) }}
+		{% endif %}
+	</div>
+	<div class="col-md-4 optionbox">
+		<h4 style="font-weight: bold">Save a copy of files in Xero Files to Dropbox</h4>
+		Saved to the '{{ user.save_files_folder_path }}' folder
+		<br />
+		<br />
+		<b>Last synced:</b> {{ user.last_save_files_sync_formatted() }}
+		<br />
+		{{ wtf.quick_form(save_files_form, action=url_for('save_files')) }}
+		{% if user.last_save_files_sync %}
+			<br />
+			{{ wtf.quick_form(reset_save_files_form, action=url_for('reset_save_files')) }}
+		{% endif %}
 	</div>
 </div>
 

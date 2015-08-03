@@ -2,6 +2,11 @@ from app import app, db
 import datetime
 import xero_auth
 
+def format_datetime(datetime):
+	if datetime:
+		return datetime.strftime('%-m-%-d-%Y at %-I:%M %p')
+	return "Never"
+
 class DropboxAccount(db.Model):
 	__tablename__ = 'dropbox_account'
 
@@ -78,35 +83,42 @@ class User(db.Model):
 	invoices_folder_path = db.Column(db.Text)
 	last_invoices_sync = db.Column(db.DateTime)
 
-	files_folder_path = db.Column(db.Text)
-	last_files_sync = db.Column(db.DateTime)	
-	dropbox_file_cursor = db.Column(db.Text)
+	upload_folder_path = db.Column(db.Text)
+	last_upload_sync = db.Column(db.DateTime)
+	dropbox_cursor = db.Column(db.Text)
+
+	save_files_folder_path = db.Column(db.Text)
+	last_save_files_sync = db.Column(db.DateTime)
 
 	def __init__(self):
 		self.invoices_folder_path = app.config['DROPBOX_INVOICE_FOLDER_PATH']
-		self.files_folder_path = app.config['DROPBOX_FILES_FOLDER_PATH']
+		self.save_files_folder_path = app.config['DROPBOX_SAVE_FILES_FOLDER_PATH']
+		self.upload_folder_path = app.config['DROPBOX_FILE_UPLOAD_FOLDER_PATH']		
 
 	def __repr__(self):
 		return '<User %r>' % self.id
 
-	def last_synced_invoices_formatted(self):
-		if self.last_invoices_sync:
-			return self.last_invoices_sync.strftime('%-m-%-d-%Y at %-I:%M %p')
-		return "Never"
+	def last_invoices_sync_formatted(self):
+		return format_datetime(self.last_invoices_sync)
 
 	def mark_invoices_synced(self, time=datetime.datetime.now()):
 		self.last_invoices_sync = time
 		db.session.commit()
 
-	def last_synced_files_formatted(self):
-		if self.last_files_sync:
-			return self.last_files_sync.strftime('%-m-%-d-%Y at %-I:%M %p')	
-		return "Never"
+	def last_upload_sync_formatted(self):
+		return format_datetime(self.last_upload_sync)
 
-	def mark_files_synced(self, time=datetime.datetime.now()):
-		self.last_files_sync = time
-		if time == None:
-			self.dropbox_file_cursor = None
+	def mark_upload_synced(self, time=datetime.datetime.now()):
+		self.last_upload_sync = time
+		if time is None:
+			self.dropbox_cursor = None
+		db.session.commit()
+
+	def last_save_files_sync_formatted(self):
+		return format_datetime(self.last_save_files_sync)
+
+	def mark_save_files_synced(self, time=datetime.datetime.now()):
+		self.last_save_files_sync = time
 		db.session.commit()
 
 	def is_logged_in_to_dropbox(self):

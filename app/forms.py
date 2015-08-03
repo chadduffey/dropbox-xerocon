@@ -13,8 +13,15 @@ class SaveInvoicesForm(Form):
 class ResetInvoicesForm(Form):
 	submit = SubmitField('Reset Invoice Sync Status')
 
-class SyncFilesForm(Form):
-	submit = SubmitField('Sync Files')
+class UploadFilesForm(Form):
+	create_folder = SubmitField('Create Folder in Dropbox')
+	upload_files = SubmitField('Upload Files from Dropbox')
 
-class ResetFilesForm(Form):
-	submit = SubmitField('Reset File Sync Status')
+class ResetUploadFilesForm(Form):
+	submit = SubmitField('Reset File Upload Status')
+
+class SaveFilesForm(Form):
+	submit = SubmitField('Save New Files')
+
+class ResetSaveFilesForm(Form):
+	submit = SubmitField('Reset File Save Status')
